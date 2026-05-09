@@ -371,9 +371,6 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
         <p class="eyebrow">WSET tasting note</p>
         <h1>Wine Notes</h1>
       </div>
-      <button class="glass-icon-button" id="newNote" type="button" aria-label="Start a fresh note" title="Start a fresh note">
-        +
-      </button>
     </header>
 
     <form class="notes-form" id="notesForm">
@@ -689,15 +686,6 @@ function restoreNote(): void {
 saveButton.addEventListener("click", () => {
   void saveNote();
 });
-document.querySelector<HTMLButtonElement>("#newNote")!.addEventListener("click", () => {
-  form.reset();
-  updateWineTypeDependentFields();
-  updateScore();
-  clearAromaSelection();
-  localStorage.removeItem(storageKey);
-  updateStatus(appleNotesReadyMessage());
-});
-
 form.addEventListener("reset", () => {
   localStorage.removeItem(storageKey);
   window.setTimeout(() => {
