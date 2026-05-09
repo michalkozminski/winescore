@@ -429,7 +429,7 @@ function configureAppleNotesSaveButton(): void {
   const canShareToNotes = canOpenAppleNotesShare();
   saveButton.disabled = !canShareToNotes;
   saveButton.title = canShareToNotes
-    ? "Open the Apple share sheet and choose Notes"
+    ? "Open the Apple share sheet and choose Notes to insert note text"
     : "Apple Notes saving requires an Apple device with Web Share support";
   updateStatus(appleNotesReadyMessage());
 }
@@ -447,16 +447,6 @@ function isAppleDevice(): boolean {
 
 function canOpenAppleNotesShare(): boolean {
   return isAppleDevice() && typeof navigator.share === "function";
-}
-
-function slugifyFileName(value: string): string {
-  const slug = value
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-
-  return slug || "wine-note";
 }
 
 function noteTitle(note: Record<string, string>): string {
@@ -513,23 +503,14 @@ async function saveToAppleNotes(note: Record<string, string>): Promise<void> {
 
   const text = buildNoteExportText(note);
   const title = noteTitle(note);
-  const file = new File([text], `${slugifyFileName(title)}.txt`, { type: "text/plain" });
 
   try {
-    if (navigator.canShare?.({ files: [file] })) {
-      await navigator.share({
-        title,
-        text,
-        files: [file]
-      });
-    } else {
-      await navigator.share({
-        title,
-        text
-      });
-    }
+    await navigator.share({
+      title,
+      text
+    });
 
-    updateStatus("Choose Notes in the share sheet to save.");
+    updateStatus("Choose Notes in the share sheet to insert the note text.");
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") {
       updateStatus("Not saved. Choose Notes to save the note.");
