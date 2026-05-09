@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Wine Notes">
+  <defs>
+    <linearGradient id="bg" x1="92" x2="420" y1="64" y2="448" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#fbf7f4" />
+      <stop offset="0.55" stop-color="#edf4f1" />
+      <stop offset="1" stop-color="#eadce0" />
+    </linearGradient>
+    <linearGradient id="wine" x1="190" x2="324" y1="118" y2="402" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#9a5061" />
+      <stop offset="1" stop-color="#62313f" />
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)" />
+  <circle cx="370" cy="126" r="72" fill="#ffffff" opacity="0.55" />
+  <circle cx="130" cy="382" r="96" fill="#7c3f4d" opacity="0.12" />
+  <path fill="url(#wine)" d="M183 126h146c-3 70-20 118-51 144v71h54v36H180v-36h54v-71c-31-26-48-74-51-144Zm45 38c6 42 19 71 38 87 19-16 32-45 38-87h-76Z" />
+  <path fill="#ffffff" opacity="0.72" d="M218 164h98c-4 21-9 39-17 54H235c-8-15-13-33-17-54Z" />
+</svg>
