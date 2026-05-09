@@ -379,9 +379,9 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
     <form class="notes-form" id="notesForm">
       ${sections.map(sectionTemplate).join("")}
       <div class="glass-action-bar">
-        <p class="save-status" id="saveStatus" aria-live="polite">Draft ready</p>
+        <p class="save-status" id="saveStatus" aria-live="polite">Ready to save in Apple Notes</p>
         <button class="glass-button glass-button-secondary" type="reset">Clear</button>
-        <button class="glass-button glass-button-primary" id="saveNote" type="button">Save note</button>
+        <button class="glass-button glass-button-primary" id="saveNote" type="button">Save to Apple Notes</button>
       </div>
     </form>
   </main>
@@ -389,6 +389,7 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
 
 const form = document.querySelector<HTMLFormElement>("#notesForm")!;
 const saveStatus = document.querySelector<HTMLParagraphElement>("#saveStatus")!;
+const saveButton = document.querySelector<HTMLButtonElement>("#saveNote")!;
 const aromaChipsInput = document.querySelector<HTMLInputElement>("#aromaChips")!;
 const aromaCount = document.querySelector<HTMLSpanElement>("#aromaCount")!;
 const selectedAromas = document.querySelector<HTMLDivElement>("#selectedAromas")!;
@@ -418,6 +419,21 @@ function updateStatus(message: string): void {
   saveStatus.textContent = message;
 }
 
+function appleNotesReadyMessage(): string {
+  return canOpenAppleNotesShare()
+    ? "Ready to save in Apple Notes"
+    : "Open on an Apple device with sharing to save in Notes.";
+}
+
+function configureAppleNotesSaveButton(): void {
+  const canShareToNotes = canOpenAppleNotesShare();
+  saveButton.disabled = !canShareToNotes;
+  saveButton.title = canShareToNotes
+    ? "Open the Apple share sheet and choose Notes"
+    : "Apple Notes saving requires an Apple device with Web Share support";
+  updateStatus(appleNotesReadyMessage());
+}
+
 function readForm(): Record<string, string> {
   const data = new FormData(form);
   return Object.fromEntries(
@@ -425,9 +441,12 @@ function readForm(): Record<string, string> {
   );
 }
 
-function isIOSDevice(): boolean {
-  return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+function isAppleDevice(): boolean {
+  return /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent) || navigator.platform === "MacIntel";
+}
+
+function canOpenAppleNotesShare(): boolean {
+  return isAppleDevice() && typeof navigator.share === "function";
 }
 
 function slugifyFileName(value: string): string {
@@ -486,8 +505,9 @@ function buildNoteExportText(note: Record<string, string>): string {
   return lines.join("\n").trimEnd();
 }
 
-async function shareIOSNotesExport(note: Record<string, string>): Promise<void> {
-  if (!isIOSDevice() || !navigator.share) {
+async function saveToAppleNotes(note: Record<string, string>): Promise<void> {
+  if (!canOpenAppleNotesShare()) {
+    updateStatus("Open on an Apple device with sharing to save in Notes.");
     return;
   }
 
@@ -509,14 +529,14 @@ async function shareIOSNotesExport(note: Record<string, string>): Promise<void> 
       });
     }
 
-    updateStatus("Saved locally. Choose Notes to add the export.");
+    updateStatus("Choose Notes in the share sheet to save.");
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") {
-      updateStatus("Saved locally");
+      updateStatus("Not saved. Choose Notes to save the note.");
       return;
     }
 
-    updateStatus("Saved locally. Export unavailable on this device.");
+    updateStatus("Apple Notes export is unavailable in this browser.");
   }
 }
 
@@ -659,10 +679,7 @@ function clearAromaSelection(): void {
 }
 
 async function saveNote(): Promise<void> {
-  const note = readForm();
-  localStorage.setItem(storageKey, JSON.stringify(note));
-  updateStatus("Saved locally");
-  await shareIOSNotesExport(note);
+  await saveToAppleNotes(readForm());
 }
 
 function restoreNote(): void {
@@ -680,13 +697,15 @@ function restoreNote(): void {
     updateWineTypeDependentFields(true);
     updateScore();
     hydrateAromasFromInput();
-    updateStatus("Restored saved note");
+    updateStatus(canOpenAppleNotesShare()
+      ? "Restored local draft. Save to Apple Notes when ready."
+      : appleNotesReadyMessage());
   } catch {
     localStorage.removeItem(storageKey);
   }
 }
 
-document.querySelector<HTMLButtonElement>("#saveNote")!.addEventListener("click", () => {
+saveButton.addEventListener("click", () => {
   void saveNote();
 });
 document.querySelector<HTMLButtonElement>("#newNote")!.addEventListener("click", () => {
@@ -695,7 +714,7 @@ document.querySelector<HTMLButtonElement>("#newNote")!.addEventListener("click",
   updateScore();
   clearAromaSelection();
   localStorage.removeItem(storageKey);
-  updateStatus("New note");
+  updateStatus(appleNotesReadyMessage());
 });
 
 form.addEventListener("reset", () => {
@@ -753,4 +772,5 @@ selectedAromas.addEventListener("click", (event) => {
 updateWineTypeDependentFields();
 updateScore();
 hydrateAromasFromInput();
+configureAppleNotesSaveButton();
 restoreNote();

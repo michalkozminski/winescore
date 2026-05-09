@@ -489,8 +489,14 @@ textarea.glass-control {
     rgba(255, 255, 255, 0.58);
 }
 
+.glass-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.56;
+  transform: none;
+}
+
 .glass-icon-button:hover,
-.glass-button:hover {
+.glass-button:not(:disabled):hover {
   transform: translateY(-1px);
   box-shadow:
     0 28px 72px rgba(37, 43, 54, 0.16),
