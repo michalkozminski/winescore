@@ -8,6 +8,8 @@ if ("serviceWorker" in navigator && import.meta.env.PROD) {
   });
 }
 
+type Language = "en" | "de";
+
 type FieldOption = {
   label: string;
   value: string;
@@ -39,124 +41,388 @@ type AromaCategory = {
 };
 
 const storageKey = "wset-wine-note-draft";
+const languageStorageKey = "wset-wine-note-language";
 
-const appearanceOptions = ["Clear", "Pale", "Medium", "Deep"].map((value) => ({
-  label: value,
-  value
-}));
+const germanTranslations: Record<string, string> = {
+  "WSET tasting note": "WSET-Verkostungsnotiz",
+  "Wine Notes": "Weinnotizen",
+  "Language": "Sprache",
+  "English": "Englisch",
+  "German": "Deutsch",
+  "Ready to save in Apple Notes": "Bereit zum Speichern in Apple Notizen",
+  "Clear form": "Löschen",
+  "Save to Apple Notes": "In Apple Notizen speichern",
+  "Open on an Apple device with sharing to save in Notes.": "Auf einem Apple-Gerät mit Teilen-Funktion öffnen, um in Notizen zu speichern.",
+  "Open the Apple share sheet and choose Notes to insert note text": "Öffne das Apple-Teilen-Menü und wähle Notizen, um den Notiztext einzufügen",
+  "Apple Notes saving requires an Apple device with Web Share support": "Das Speichern in Apple Notizen erfordert ein Apple-Gerät mit Web-Share-Unterstützung",
+  "Wine Note": "Weinnotiz",
+  "Exported": "Exportiert",
+  "Selected aromas": "Ausgewählte Aromen",
+  "Choose Notes in the share sheet to insert the note text.": "Wähle Notizen im Teilen-Menü, um den Notiztext einzufügen.",
+  "Not saved. Choose Notes to save the note.": "Nicht gespeichert. Wähle Notizen, um die Notiz zu speichern.",
+  "Apple Notes export is unavailable in this browser.": "Der Export nach Apple Notizen ist in diesem Browser nicht verfügbar.",
+  "Restored local draft. Save to Apple Notes when ready.": "Lokaler Entwurf wiederhergestellt. Speichere ihn in Apple Notizen, wenn er fertig ist.",
+  "Cleared": "Gelöscht",
+  "Select": "Auswählen",
+  "Select type first": "Zuerst Typ auswählen",
+  "Select colour": "Farbe auswählen",
+  "No aromas selected": "Keine Aromen ausgewählt",
+  "Selected aromas will appear here": "Ausgewählte Aromen erscheinen hier",
+  "Notes": "Notizen",
+  "Aroma categories": "Aromakategorien",
+  "Select BLIC criteria": "BLIC-Kriterien auswählen",
+  "criteria selected": "Kriterien ausgewählt",
+  "selected": "ausgewählt",
+  "Remove": "Entfernen",
 
-const intensityOptions = ["Light", "Medium(-)", "Medium", "Medium(+)", "Pronounced"].map((value) => ({
-  label: value,
-  value
-}));
+  "Clear appearance": "Klar",
+  "Pale": "Blass",
+  "Medium": "Mittel",
+  "Deep": "Tief",
+  "Light": "Leicht",
+  "Medium(-)": "Mittel(-)",
+  "Medium(+)": "Mittel(+)",
+  "Pronounced": "Ausgeprägt",
+  "Low": "Niedrig",
+  "High": "Hoch",
+  "White": "Weiß",
+  "Red": "Rot",
+  "Rose": "Rosé",
+  "Lemon-green": "Zitronengrün",
+  "Lemon": "Zitrone",
+  "Gold": "Gold",
+  "Amber": "Bernstein",
+  "Brown": "Braun",
+  "Purple": "Purpur",
+  "Ruby": "Rubinrot",
+  "Garnet": "Granatrot",
+  "Tawny": "Tawny",
+  "Pink": "Rosa",
+  "Salmon": "Lachsfarben",
+  "Orange": "Orange",
+  "Onion skin": "Zwiebelschale",
 
-const acidTanninBodyOptions = ["Low", "Medium(-)", "Medium", "Medium(+)", "High"].map((value) => ({
-  label: value,
-  value
-}));
+  "Wine": "Wein",
+  "Set the sample context before assessing it.": "Lege den Kontext der Probe fest, bevor du sie beurteilst.",
+  "Producer, cuvee, vintage": "Erzeuger, Cuvée, Jahrgang",
+  "Type": "Typ",
+  "Region": "Region",
+  "Country, region, appellation": "Land, Region, Appellation",
+  "Grape variety": "Rebsorte",
+  "Variety or blend": "Rebsorte oder Cuvée",
+  "Appearance": "Aussehen",
+  "Clarity, intensity, colour, and observable development.": "Klarheit, Intensität, Farbe und sichtbare Entwicklung.",
+  "Clarity": "Klarheit",
+  "Intensity": "Intensität",
+  "Colour": "Farbe",
+  "Rim variation, legs, deposits": "Randaufhellung, Tränen, Depot",
+  "Nose": "Nase",
+  "Condition, intensity, aroma characteristics, and development.": "Zustand, Intensität, Aromaeigenschaften und Entwicklung.",
+  "Condition": "Zustand",
+  "Clean, unclean": "Sauber, unsauber",
+  "Aromas": "Aromen",
+  "Fruit, floral, spice, oak, earth, tertiary": "Frucht, floral, Würze, Eiche, erdig, tertiär",
+  "Palate": "Gaumen",
+  "Structure, flavour intensity, finish, and balance.": "Struktur, Geschmacksintensität, Abgang und Balance.",
+  "Sweetness": "Süße",
+  "Acidity": "Säure",
+  "Tannin": "Tannin",
+  "Body": "Körper",
+  "Alcohol": "Alkohol",
+  "Flavours": "Geschmacksnoten",
+  "Confirm aromas and note palate-specific flavours": "Aromen bestätigen und gaumenspezifische Geschmacksnoten notieren",
+  "Finish": "Abgang",
+  "Short, medium, long": "Kurz, mittel, lang",
+  "Conclusion": "Fazit",
+  "Score is calculated from balance, length, intensity, and complexity.": "Die Punktzahl wird aus Balance, Länge, Intensität und Komplexität berechnet.",
+  "Balance": "Balance",
+  "Length": "Länge",
+  "Complexity": "Komplexität",
+  "Score": "Punktzahl",
+  "Quality": "Qualität",
+  "Acceptable, good, very good, outstanding": "Akzeptabel, gut, sehr gut, herausragend",
+  "Readiness": "Trinkreife",
+  "Drink now, suitable for ageing": "Jetzt trinken, lagerfähig",
+  "Balance, length, intensity, complexity": "Balance, Länge, Intensität, Komplexität",
+  "Outstanding": "Herausragend",
+  "Very good": "Sehr gut",
+  "Good": "Gut",
+  "Acceptable": "Akzeptabel",
+  "Poor": "Schwach",
 
-const wineTypeOptions = ["White", "Red", "Rose"].map((value) => ({
-  label: value === "Rose" ? "Rose" : value,
-  value: value.toLowerCase()
-}));
+  "Primary": "Primär",
+  "Secondary": "Sekundär",
+  "Tertiary": "Tertiär",
+  "Floral": "Floral",
+  "Blossom": "Blüte",
+  "Elderflower": "Holunderblüte",
+  "Honeysuckle": "Geißblatt",
+  "Jasmine": "Jasmin",
+  "Violet": "Veilchen",
+  "Green Fruit": "Grüne Früchte",
+  "Apple": "Apfel",
+  "Green apple": "Grüner Apfel",
+  "Pear": "Birne",
+  "Gooseberry": "Stachelbeere",
+  "Quince": "Quitte",
+  "Grape": "Traube",
+  "Citrus Fruit": "Zitrusfrüchte",
+  "Grapefruit": "Grapefruit",
+  "Lime": "Limette",
+  "Lemon peel": "Zitronenschale",
+  "Orange peel": "Orangenschale",
+  "Stone & Tropical": "Stein- & Tropenfrüchte",
+  "Peach": "Pfirsich",
+  "Apricot": "Aprikose",
+  "Nectarine": "Nektarine",
+  "Banana": "Banane",
+  "Lychee": "Litschi",
+  "Mango": "Mango",
+  "Melon": "Melone",
+  "Passion fruit": "Passionsfrucht",
+  "Pineapple": "Ananas",
+  "Red Fruit": "Rote Früchte",
+  "Redcurrant": "Rote Johannisbeere",
+  "Cranberry": "Cranberry",
+  "Raspberry": "Himbeere",
+  "Strawberry": "Erdbeere",
+  "Red cherry": "Rote Kirsche",
+  "Red plum": "Rote Pflaume",
+  "Black Fruit": "Schwarze Früchte",
+  "Blackcurrant": "Schwarze Johannisbeere",
+  "Blackberry": "Brombeere",
+  "Bramble": "Brombeerstrauch",
+  "Blueberry": "Blaubeere",
+  "Black cherry": "Schwarzkirsche",
+  "Black plum": "Schwarze Pflaume",
+  "Fruit Condition": "Fruchtzustand",
+  "Unripe fruit": "Unreife Frucht",
+  "Ripe fruit": "Reife Frucht",
+  "Cooked fruit": "Gekochte Frucht",
+  "Baked fruit": "Gebackene Frucht",
+  "Dried fruit": "Getrocknete Frucht",
+  "Jamminess": "Konfitüre",
+  "Herbal & Herbaceous": "Kräutrig & vegetabil",
+  "Green bell pepper": "Grüne Paprika",
+  "Grass": "Gras",
+  "Tomato leaf": "Tomatenblatt",
+  "Asparagus": "Spargel",
+  "Blackcurrant leaf": "Johannisbeerblatt",
+  "Eucalyptus": "Eukalyptus",
+  "Mint": "Minze",
+  "Fennel": "Fenchel",
+  "Dill": "Dill",
+  "Dried herbs": "Getrocknete Kräuter",
+  "Spice & Other": "Würze & Sonstiges",
+  "Black pepper": "Schwarzer Pfeffer",
+  "White pepper": "Weißer Pfeffer",
+  "Liquorice": "Lakritz",
+  "Cinnamon": "Zimt",
+  "Wet stones": "Nasse Steine",
+  "Flint": "Feuerstein",
+  "Candy": "Bonbon",
+  "Yeast & Lees": "Hefe & Feinhefe",
+  "Biscuit": "Keks",
+  "Bread": "Brot",
+  "Toast": "Toast",
+  "Pastry": "Gebäck",
+  "Brioche": "Brioche",
+  "Bread dough": "Brotteig",
+  "Cheese": "Käse",
+  "Yogurt": "Joghurt",
+  "Malolactic": "Biologischer Säureabbau",
+  "Butter": "Butter",
+  "Cream": "Sahne",
+  "Oak": "Eiche",
+  "Vanilla": "Vanille",
+  "Clove": "Nelke",
+  "Nutmeg": "Muskatnuss",
+  "Coconut": "Kokos",
+  "Butterscotch": "Butterkaramell",
+  "Cedar": "Zeder",
+  "Charred wood": "Angekohltes Holz",
+  "Smoke": "Rauch",
+  "Chocolate": "Schokolade",
+  "Coffee": "Kaffee",
+  "Fermentation Markers": "Gärungsnoten",
+  "Pear drop": "Birnenbonbon",
+  "Bubblegum": "Kaugummi",
+  "Kirsch": "Kirschwasser",
+  "Candied fruit": "Kandierte Frucht",
+  "White Wine Development": "Weißweinentwicklung",
+  "Dried apricot": "Getrocknete Aprikose",
+  "Dried apple": "Getrockneter Apfel",
+  "Marmalade": "Marmelade",
+  "Petrol": "Petrol",
+  "Kerosene": "Kerosin",
+  "Honey": "Honig",
+  "Hay": "Heu",
+  "Mushroom": "Pilz",
+  "Red Wine Development": "Rotweinentwicklung",
+  "Fig": "Feige",
+  "Prune": "Backpflaume",
+  "Raisin": "Rosine",
+  "Dried cranberry": "Getrocknete Cranberry",
+  "Cooked plum": "Gekochte Pflaume",
+  "Leather": "Leder",
+  "Earth": "Erde",
+  "Meat": "Fleisch",
+  "Tobacco": "Tabak",
+  "Wet leaves": "Nasses Laub",
+  "Forest floor": "Waldboden",
+  "Bottle Spice & Savoury": "Flaschenwürze & herzhaft",
+  "Ginger": "Ingwer",
+  "Nutty": "Nussig",
+  "Truffle": "Trüffel",
+  "Game": "Wild",
+  "Tar": "Teer",
+  "Oxidative": "Oxidativ",
+  "Almond": "Mandel",
+  "Marzipan": "Marzipan",
+  "Hazelnut": "Haselnuss",
+  "Walnut": "Walnuss",
+  "Toffee": "Toffee",
+  "Caramel": "Karamell"
+};
+
+const supportedLanguages: Language[] = ["en", "de"];
+const currentLanguage = readLanguagePreference();
+
+document.documentElement.lang = currentLanguage;
+document.title = currentLanguage === "de" ? "WSET Weinnotizen" : "WSET Wine Notes";
+setMetaContent("application-name", t("Wine Notes"));
+setMetaContent("apple-mobile-web-app-title", t("Wine Notes"));
+
+function readLanguagePreference(): Language {
+  const savedLanguage = localStorage.getItem(languageStorageKey);
+
+  if (savedLanguage === "de" || savedLanguage === "en") {
+    return savedLanguage;
+  }
+
+  return navigator.language.toLowerCase().startsWith("de") ? "de" : "en";
+}
+
+function setMetaContent(name: string, content: string): void {
+  document.querySelector<HTMLMetaElement>(`meta[name="${name}"]`)?.setAttribute("content", content);
+}
+
+function t(text: string): string {
+  return currentLanguage === "de" ? germanTranslations[text] ?? text : text;
+}
+
+function option(value: string, label = value): FieldOption {
+  return {
+    label: t(label),
+    value
+  };
+}
+
+const appearanceOptions = [option("Clear", "Clear appearance"), ...["Pale", "Medium", "Deep"].map((value) => option(value))];
+
+const intensityOptions = ["Light", "Medium(-)", "Medium", "Medium(+)", "Pronounced"].map((value) => option(value));
+
+const acidTanninBodyOptions = ["Low", "Medium(-)", "Medium", "Medium(+)", "High"].map((value) => option(value));
+
+const wineTypeOptions = ["White", "Red", "Rose"].map((value) => option(value.toLowerCase(), value));
 
 const wineColorOptions: Record<string, FieldOption[]> = {
-  white: ["Lemon-green", "Lemon", "Gold", "Amber", "Brown"].map((value) => ({ label: value, value })),
-  red: ["Purple", "Ruby", "Garnet", "Tawny", "Brown"].map((value) => ({ label: value, value })),
-  rose: ["Pink", "Salmon", "Orange", "Onion skin"].map((value) => ({ label: value, value }))
+  white: ["Lemon-green", "Lemon", "Gold", "Amber", "Brown"].map((value) => option(value)),
+  red: ["Purple", "Ruby", "Garnet", "Tawny", "Brown"].map((value) => option(value)),
+  rose: ["Pink", "Salmon", "Orange", "Onion skin"].map((value) => option(value))
 };
 
 const scoreOptions: FieldOption[] = [
-  { label: "Low", value: "1" },
-  { label: "Medium(-)", value: "2" },
-  { label: "Medium", value: "3" },
-  { label: "Medium(+)", value: "4" },
-  { label: "High", value: "5" }
+  option("1", "Low"),
+  option("2", "Medium(-)"),
+  option("3", "Medium"),
+  option("4", "Medium(+)"),
+  option("5", "High")
 ];
 
 const aromaCategories: AromaCategory[] = [
   {
     id: "primary",
-    label: "Primary",
+    label: t("Primary"),
     groups: [
       {
-        title: "Floral",
+        title: t("Floral"),
         notes: ["Blossom", "Elderflower", "Honeysuckle", "Jasmine", "Rose", "Violet"]
       },
       {
-        title: "Green Fruit",
+        title: t("Green Fruit"),
         notes: ["Apple", "Green apple", "Pear", "Gooseberry", "Quince", "Grape"]
       },
       {
-        title: "Citrus Fruit",
+        title: t("Citrus Fruit"),
         notes: ["Grapefruit", "Lemon", "Lime", "Orange", "Lemon peel", "Orange peel"]
       },
       {
-        title: "Stone & Tropical",
+        title: t("Stone & Tropical"),
         notes: ["Peach", "Apricot", "Nectarine", "Banana", "Lychee", "Mango", "Melon", "Passion fruit", "Pineapple"]
       },
       {
-        title: "Red Fruit",
+        title: t("Red Fruit"),
         notes: ["Redcurrant", "Cranberry", "Raspberry", "Strawberry", "Red cherry", "Red plum"]
       },
       {
-        title: "Black Fruit",
+        title: t("Black Fruit"),
         notes: ["Blackcurrant", "Blackberry", "Bramble", "Blueberry", "Black cherry", "Black plum"]
       },
       {
-        title: "Fruit Condition",
+        title: t("Fruit Condition"),
         notes: ["Unripe fruit", "Ripe fruit", "Cooked fruit", "Baked fruit", "Dried fruit", "Jamminess"]
       },
       {
-        title: "Herbal & Herbaceous",
+        title: t("Herbal & Herbaceous"),
         notes: ["Green bell pepper", "Grass", "Tomato leaf", "Asparagus", "Blackcurrant leaf", "Eucalyptus", "Mint", "Fennel", "Dill", "Dried herbs"]
       },
       {
-        title: "Spice & Other",
+        title: t("Spice & Other"),
         notes: ["Black pepper", "White pepper", "Liquorice", "Cinnamon", "Wet stones", "Flint", "Candy"]
       }
     ]
   },
   {
     id: "secondary",
-    label: "Secondary",
+    label: t("Secondary"),
     groups: [
       {
-        title: "Yeast & Lees",
+        title: t("Yeast & Lees"),
         notes: ["Biscuit", "Bread", "Toast", "Pastry", "Brioche", "Bread dough", "Cheese", "Yogurt"]
       },
       {
-        title: "Malolactic",
+        title: t("Malolactic"),
         notes: ["Butter", "Cream", "Cheese", "Yogurt"]
       },
       {
-        title: "Oak",
+        title: t("Oak"),
         notes: ["Vanilla", "Clove", "Nutmeg", "Coconut", "Butterscotch", "Cedar", "Charred wood", "Smoke", "Chocolate", "Coffee"]
       },
       {
-        title: "Fermentation Markers",
+        title: t("Fermentation Markers"),
         notes: ["Banana", "Pear drop", "Bubblegum", "Kirsch", "Candied fruit"]
       }
     ]
   },
   {
     id: "tertiary",
-    label: "Tertiary",
+    label: t("Tertiary"),
     groups: [
       {
-        title: "White Wine Development",
+        title: t("White Wine Development"),
         notes: ["Dried apricot", "Dried apple", "Marmalade", "Petrol", "Kerosene", "Honey", "Hay", "Mushroom"]
       },
       {
-        title: "Red Wine Development",
+        title: t("Red Wine Development"),
         notes: ["Fig", "Prune", "Raisin", "Dried cranberry", "Cooked plum", "Leather", "Earth", "Meat", "Tobacco", "Wet leaves", "Forest floor"]
       },
       {
-        title: "Bottle Spice & Savoury",
+        title: t("Bottle Spice & Savoury"),
         notes: ["Cinnamon", "Ginger", "Nutmeg", "Toast", "Nutty", "Truffle", "Game", "Tar"]
       },
       {
-        title: "Oxidative",
+        title: t("Oxidative"),
         notes: ["Almond", "Marzipan", "Hazelnut", "Walnut", "Chocolate", "Coffee", "Toffee", "Caramel"]
       }
     ]
@@ -165,59 +431,59 @@ const aromaCategories: AromaCategory[] = [
 
 const sections: Section[] = [
   {
-    title: "Wine",
-    subtitle: "Set the sample context before assessing it.",
+    title: t("Wine"),
+    subtitle: t("Set the sample context before assessing it."),
     fields: [
-      { id: "wineName", label: "Wine", placeholder: "Producer, cuvee, vintage" },
-      { id: "wineType", label: "Type", type: "select", options: wineTypeOptions },
-      { id: "region", label: "Region", placeholder: "Country, region, appellation" },
-      { id: "grape", label: "Grape", placeholder: "Variety or blend" }
+      { id: "wineName", label: t("Wine"), placeholder: t("Producer, cuvee, vintage") },
+      { id: "wineType", label: t("Type"), type: "select", options: wineTypeOptions },
+      { id: "region", label: t("Region"), placeholder: t("Country, region, appellation") },
+      { id: "grape", label: t("Grape variety"), placeholder: t("Variety or blend") }
     ]
   },
   {
-    title: "Appearance",
-    subtitle: "Clarity, intensity, colour, and observable development.",
+    title: t("Appearance"),
+    subtitle: t("Clarity, intensity, colour, and observable development."),
     fields: [
-      { id: "clarity", label: "Clarity", type: "select", options: appearanceOptions },
-      { id: "appearanceIntensity", label: "Intensity", type: "select", options: appearanceOptions },
-      { id: "colour", label: "Colour", type: "select" },
-      { id: "appearanceNotes", label: "Notes", type: "textarea", placeholder: "Rim variation, legs, deposits" }
+      { id: "clarity", label: t("Clarity"), type: "select", options: appearanceOptions },
+      { id: "appearanceIntensity", label: t("Intensity"), type: "select", options: appearanceOptions },
+      { id: "colour", label: t("Colour"), type: "select" },
+      { id: "appearanceNotes", label: t("Notes"), type: "textarea", placeholder: t("Rim variation, legs, deposits") }
     ]
   },
   {
-    title: "Nose",
-    subtitle: "Condition, intensity, aroma characteristics, and development.",
+    title: t("Nose"),
+    subtitle: t("Condition, intensity, aroma characteristics, and development."),
     fields: [
-      { id: "condition", label: "Condition", placeholder: "Clean, unclean" },
-      { id: "noseIntensity", label: "Intensity", type: "select", options: intensityOptions },
-      { id: "aromas", label: "Aromas", type: "aroma", placeholder: "Fruit, floral, spice, oak, earth, tertiary" }
+      { id: "condition", label: t("Condition"), placeholder: t("Clean, unclean") },
+      { id: "noseIntensity", label: t("Intensity"), type: "select", options: intensityOptions },
+      { id: "aromas", label: t("Aromas"), type: "aroma", placeholder: t("Fruit, floral, spice, oak, earth, tertiary") }
     ]
   },
   {
-    title: "Palate",
-    subtitle: "Structure, flavour intensity, finish, and balance.",
+    title: t("Palate"),
+    subtitle: t("Structure, flavour intensity, finish, and balance."),
     fields: [
-      { id: "sweetness", label: "Sweetness", type: "select", options: acidTanninBodyOptions },
-      { id: "acidity", label: "Acidity", type: "select", options: acidTanninBodyOptions },
-      { id: "tannin", label: "Tannin", type: "select", options: acidTanninBodyOptions },
-      { id: "body", label: "Body", type: "select", options: acidTanninBodyOptions },
-      { id: "alcohol", label: "Alcohol", type: "select", options: acidTanninBodyOptions },
-      { id: "flavours", label: "Flavours", type: "textarea", placeholder: "Confirm aromas and note palate-specific flavours" },
-      { id: "finish", label: "Finish", placeholder: "Short, medium, long" }
+      { id: "sweetness", label: t("Sweetness"), type: "select", options: acidTanninBodyOptions },
+      { id: "acidity", label: t("Acidity"), type: "select", options: acidTanninBodyOptions },
+      { id: "tannin", label: t("Tannin"), type: "select", options: acidTanninBodyOptions },
+      { id: "body", label: t("Body"), type: "select", options: acidTanninBodyOptions },
+      { id: "alcohol", label: t("Alcohol"), type: "select", options: acidTanninBodyOptions },
+      { id: "flavours", label: t("Flavours"), type: "textarea", placeholder: t("Confirm aromas and note palate-specific flavours") },
+      { id: "finish", label: t("Finish"), placeholder: t("Short, medium, long") }
     ]
   },
   {
-    title: "Conclusion",
-    subtitle: "Score is calculated from balance, length, intensity, and complexity.",
+    title: t("Conclusion"),
+    subtitle: t("Score is calculated from balance, length, intensity, and complexity."),
     fields: [
-      { id: "balanceScore", label: "Balance", type: "select", options: scoreOptions },
-      { id: "lengthScore", label: "Length", type: "select", options: scoreOptions },
-      { id: "intensityScore", label: "Intensity", type: "select", options: scoreOptions },
-      { id: "complexityScore", label: "Complexity", type: "select", options: scoreOptions },
-      { id: "score", label: "Score", type: "score" },
-      { id: "quality", label: "Quality", placeholder: "Acceptable, good, very good, outstanding" },
-      { id: "readiness", label: "Readiness", placeholder: "Drink now, suitable for ageing" },
-      { id: "conclusionNotes", label: "Notes", type: "textarea", placeholder: "Balance, length, intensity, complexity" }
+      { id: "balanceScore", label: t("Balance"), type: "select", options: scoreOptions },
+      { id: "lengthScore", label: t("Length"), type: "select", options: scoreOptions },
+      { id: "intensityScore", label: t("Intensity"), type: "select", options: scoreOptions },
+      { id: "complexityScore", label: t("Complexity"), type: "select", options: scoreOptions },
+      { id: "score", label: t("Score"), type: "score" },
+      { id: "quality", label: t("Quality"), placeholder: t("Acceptable, good, very good, outstanding") },
+      { id: "readiness", label: t("Readiness"), placeholder: t("Drink now, suitable for ageing") },
+      { id: "conclusionNotes", label: t("Notes"), type: "textarea", placeholder: t("Balance, length, intensity, complexity") }
     ]
   }
 ];
@@ -231,7 +497,7 @@ function aromaGroupTemplate(group: AromaGroup): string {
           .map(
             (note) => `
               <button class="aroma-chip" type="button" data-aroma-chip="${note}" aria-pressed="false">
-                ${note}
+                ${t(note)}
               </button>
             `
           )
@@ -246,10 +512,10 @@ function aromaSelectorTemplate(field: Field): string {
     <div class="glass-field field-wide aroma-builder">
       <div class="aroma-label-row">
         <span>${field.label}</span>
-        <span class="aroma-count" id="aromaCount">No aromas selected</span>
+        <span class="aroma-count" id="aromaCount">${t("No aromas selected")}</span>
       </div>
 
-      <div class="aroma-tabs" role="tablist" aria-label="Aroma categories">
+      <div class="aroma-tabs" role="tablist" aria-label="${t("Aroma categories")}">
         ${aromaCategories
           .map(
             (category, index) => `
@@ -288,11 +554,11 @@ function aromaSelectorTemplate(field: Field): string {
 
       <input id="aromaChips" name="aromaChips" type="hidden" />
       <div class="selected-aromas" id="selectedAromas" aria-live="polite">
-        <span class="selected-empty">Selected aromas will appear here</span>
+        <span class="selected-empty">${t("Selected aromas will appear here")}</span>
       </div>
 
       <label class="aroma-notes" for="${field.id}">
-        <span>Notes</span>
+        <span>${t("Notes")}</span>
         <textarea class="glass-control" id="${field.id}" name="${field.id}" rows="4" placeholder="${field.placeholder ?? ""}"></textarea>
       </label>
     </div>
@@ -306,7 +572,7 @@ function fieldTemplate(field: Field): string {
         <span>${field.label}</span>
         <div class="score-display" aria-live="polite">
           <strong id="scoreValue">--</strong>
-          <span id="scoreLabel">Select BLIC criteria</span>
+          <span id="scoreLabel">${t("Select BLIC criteria")}</span>
         </div>
         <input id="${field.id}" name="${field.id}" type="hidden" />
       </div>
@@ -328,14 +594,14 @@ function fieldTemplate(field: Field): string {
 
   if (field.type === "select") {
     const options = field.options
-      ?.map((option) => `<option value="${option.value}">${option.label}</option>`)
+      ?.map((fieldOption) => `<option value="${fieldOption.value}">${fieldOption.label}</option>`)
       .join("");
 
     return `
       <label class="glass-field" for="${field.id}" data-field-id="${field.id}">
         <span>${field.label}</span>
         <select class="glass-control" id="${field.id}" name="${field.id}">
-          <option value="">${field.id === "colour" ? "Select type first" : "Select"}</option>
+          <option value="">${field.id === "colour" ? t("Select type first") : t("Select")}</option>
           ${options ?? ""}
         </select>
       </label>
@@ -367,24 +633,35 @@ function sectionTemplate(section: Section): string {
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
   <main class="app-shell">
     <header class="glass-header">
-      <div>
-        <p class="eyebrow">WSET tasting note</p>
-        <h1>Wine Notes</h1>
+      <div class="header-copy">
+        <p class="eyebrow">${t("WSET tasting note")}</p>
+        <h1>${t("Wine Notes")}</h1>
       </div>
+      <label class="language-field" for="languageSelect">
+        <span>${t("Language")}</span>
+        <select class="glass-control language-select" id="languageSelect" name="language">
+          ${supportedLanguages.map((language) => `
+            <option value="${language}" ${language === currentLanguage ? "selected" : ""}>
+              ${language === "de" ? t("German") : t("English")}
+            </option>
+          `).join("")}
+        </select>
+      </label>
     </header>
 
     <form class="notes-form" id="notesForm">
       ${sections.map(sectionTemplate).join("")}
       <div class="glass-action-bar">
-        <p class="save-status" id="saveStatus" aria-live="polite">Ready to save in Apple Notes</p>
-        <button class="glass-button glass-button-secondary" type="reset">Clear</button>
-        <button class="glass-button glass-button-primary" id="saveNote" type="button">Save to Apple Notes</button>
+        <p class="save-status" id="saveStatus" aria-live="polite">${t("Ready to save in Apple Notes")}</p>
+        <button class="glass-button glass-button-secondary" type="reset">${t("Clear form")}</button>
+        <button class="glass-button glass-button-primary" id="saveNote" type="button">${t("Save to Apple Notes")}</button>
       </div>
     </form>
   </main>
 `;
 
 const form = document.querySelector<HTMLFormElement>("#notesForm")!;
+const languageSelect = document.querySelector<HTMLSelectElement>("#languageSelect")!;
 const saveStatus = document.querySelector<HTMLParagraphElement>("#saveStatus")!;
 const saveButton = document.querySelector<HTMLButtonElement>("#saveNote")!;
 const aromaChipsInput = document.querySelector<HTMLInputElement>("#aromaChips")!;
@@ -409,7 +686,7 @@ const selectLabels = new Map(
     ...wineTypeOptions,
     ...Object.values(wineColorOptions).flat(),
     ...scoreOptions
-  ].map((option) => [option.value, option.label])
+  ].map((fieldOption) => [fieldOption.value, fieldOption.label])
 );
 
 function updateStatus(message: string): void {
@@ -418,16 +695,16 @@ function updateStatus(message: string): void {
 
 function appleNotesReadyMessage(): string {
   return canOpenAppleNotesShare()
-    ? "Ready to save in Apple Notes"
-    : "Open on an Apple device with sharing to save in Notes.";
+    ? t("Ready to save in Apple Notes")
+    : t("Open on an Apple device with sharing to save in Notes.");
 }
 
 function configureAppleNotesSaveButton(): void {
   const canShareToNotes = canOpenAppleNotesShare();
   saveButton.disabled = !canShareToNotes;
   saveButton.title = canShareToNotes
-    ? "Open the Apple share sheet and choose Notes to insert note text"
-    : "Apple Notes saving requires an Apple device with Web Share support";
+    ? t("Open the Apple share sheet and choose Notes to insert note text")
+    : t("Apple Notes saving requires an Apple device with Web Share support");
   updateStatus(appleNotesReadyMessage());
 }
 
@@ -447,23 +724,23 @@ function canOpenAppleNotesShare(): boolean {
 }
 
 function noteTitle(note: Record<string, string>): string {
-  return note.wineName?.trim() || "Wine Note";
+  return note.wineName?.trim() || t("Wine Note");
 }
 
 function formatFieldValue(id: string, value: string): string {
   if (id === "aromaChips") {
-    return value.split("|").filter(Boolean).join(", ");
+    return value.split("|").filter(Boolean).map((note) => t(note)).join(", ");
   }
 
   return selectLabels.get(value) ?? value;
 }
 
 function buildNoteExportText(note: Record<string, string>): string {
-  const exportedAt = new Intl.DateTimeFormat(undefined, {
+  const exportedAt = new Intl.DateTimeFormat(currentLanguage, {
     dateStyle: "medium",
     timeStyle: "short"
   }).format(new Date());
-  const lines = [noteTitle(note), `Exported ${exportedAt}`, ""];
+  const lines = [noteTitle(note), `${t("Exported")} ${exportedAt}`, ""];
 
   sections.forEach((section) => {
     const sectionLines: string[] = [];
@@ -476,10 +753,10 @@ function buildNoteExportText(note: Record<string, string>): string {
       }
 
       if (field.id === "aromas") {
-        const selectedAromas = note.aromaChips?.trim();
+        const selectedAromasValue = note.aromaChips?.trim();
 
-        if (selectedAromas) {
-          sectionLines.push(`Selected aromas: ${formatFieldValue("aromaChips", selectedAromas)}`);
+        if (selectedAromasValue) {
+          sectionLines.push(`${t("Selected aromas")}: ${formatFieldValue("aromaChips", selectedAromasValue)}`);
         }
       }
     });
@@ -494,7 +771,7 @@ function buildNoteExportText(note: Record<string, string>): string {
 
 async function saveToAppleNotes(note: Record<string, string>): Promise<void> {
   if (!canOpenAppleNotesShare()) {
-    updateStatus("Open on an Apple device with sharing to save in Notes.");
+    updateStatus(t("Open on an Apple device with sharing to save in Notes."));
     return;
   }
 
@@ -507,14 +784,14 @@ async function saveToAppleNotes(note: Record<string, string>): Promise<void> {
       text
     });
 
-    updateStatus("Choose Notes in the share sheet to insert the note text.");
+    updateStatus(t("Choose Notes in the share sheet to insert the note text."));
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") {
-      updateStatus("Not saved. Choose Notes to save the note.");
+      updateStatus(t("Not saved. Choose Notes to save the note."));
       return;
     }
 
-    updateStatus("Apple Notes export is unavailable in this browser.");
+    updateStatus(t("Apple Notes export is unavailable in this browser."));
   }
 }
 
@@ -534,11 +811,11 @@ function updateColourOptions(keepCurrent = false): void {
   const options = wineColorOptions[wineType] ?? [];
 
   colourSelect.innerHTML = `
-    <option value="">${wineType ? "Select colour" : "Select type first"}</option>
-    ${options.map((option) => `<option value="${option.value}">${option.label}</option>`).join("")}
+    <option value="">${wineType ? t("Select colour") : t("Select type first")}</option>
+    ${options.map((fieldOption) => `<option value="${fieldOption.value}">${fieldOption.label}</option>`).join("")}
   `;
 
-  const canKeepCurrent = keepCurrent && options.some((option) => option.value === currentColour);
+  const canKeepCurrent = keepCurrent && options.some((fieldOption) => fieldOption.value === currentColour);
   colourSelect.value = canKeepCurrent ? currentColour : "";
   colourSelect.disabled = options.length === 0;
 }
@@ -555,22 +832,22 @@ function updateTanninAvailability(): void {
 
 function scoreQualityLabel(score: number): string {
   if (score >= 85) {
-    return "Outstanding";
+    return t("Outstanding");
   }
 
   if (score >= 70) {
-    return "Very good";
+    return t("Very good");
   }
 
   if (score >= 55) {
-    return "Good";
+    return t("Good");
   }
 
   if (score >= 40) {
-    return "Acceptable";
+    return t("Acceptable");
   }
 
-  return "Poor";
+  return t("Poor");
 }
 
 function updateScore(): void {
@@ -583,7 +860,7 @@ function updateScore(): void {
   if (assessedValues.length < scoreCriteria.length) {
     scoreInput.value = "";
     scoreValue.textContent = "--";
-    scoreLabel.textContent = `${assessedValues.length}/${scoreCriteria.length} criteria selected`;
+    scoreLabel.textContent = `${assessedValues.length}/${scoreCriteria.length} ${t("criteria selected")}`;
     return;
   }
 
@@ -609,16 +886,16 @@ function updateAromaSummary(): void {
   const selected = getSelectedAromas();
   aromaChipsInput.value = selected.join("|");
   aromaCount.textContent = selected.length === 0
-    ? "No aromas selected"
-    : `${selected.length} selected`;
+    ? t("No aromas selected")
+    : `${selected.length} ${t("selected")}`;
 
   selectedAromas.innerHTML = selected.length === 0
-    ? '<span class="selected-empty">Selected aromas will appear here</span>'
+    ? `<span class="selected-empty">${t("Selected aromas will appear here")}</span>`
     : selected
       .map(
         (note) => `
-          <button class="selected-aroma" type="button" data-remove-aroma="${note}" aria-label="Remove ${note}">
-            ${note}
+          <button class="selected-aroma" type="button" data-remove-aroma="${note}" aria-label="${t("Remove")} ${t(note)}">
+            ${t(note)}
           </button>
         `
       )
@@ -676,12 +953,24 @@ function restoreNote(): void {
     updateScore();
     hydrateAromasFromInput();
     updateStatus(canOpenAppleNotesShare()
-      ? "Restored local draft. Save to Apple Notes when ready."
+      ? t("Restored local draft. Save to Apple Notes when ready.")
       : appleNotesReadyMessage());
   } catch {
     localStorage.removeItem(storageKey);
   }
 }
+
+languageSelect.addEventListener("change", () => {
+  const selectedLanguage = languageSelect.value;
+
+  if (selectedLanguage !== "de" && selectedLanguage !== "en") {
+    return;
+  }
+
+  localStorage.setItem(storageKey, JSON.stringify(readForm()));
+  localStorage.setItem(languageStorageKey, selectedLanguage);
+  window.location.reload();
+});
 
 saveButton.addEventListener("click", () => {
   void saveNote();
@@ -693,7 +982,7 @@ form.addEventListener("reset", () => {
     updateScore();
     clearAromaSelection();
   });
-  updateStatus("Cleared");
+  updateStatus(t("Cleared"));
 });
 
 wineTypeSelect.addEventListener("change", () => {

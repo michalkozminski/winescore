@@ -189,6 +189,34 @@ p {
   margin: 0;
 }
 
+.header-copy,
+.language-field {
+  position: relative;
+  z-index: 1;
+}
+
+.header-copy {
+  min-width: 0;
+}
+
+.language-field {
+  display: grid;
+  flex: 0 0 min(220px, 38%);
+  gap: 7px;
+}
+
+.language-field span {
+  color: rgba(17, 19, 24, 0.72);
+  font-size: 0.78rem;
+  font-weight: 780;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.language-select {
+  min-width: 140px;
+}
+
 h1 {
   position: relative;
   color: var(--ink);
@@ -634,6 +662,7 @@ textarea.glass-control {
   }
 
   .glass-header {
+    align-items: flex-start;
     border-radius: 28px;
   }
 
@@ -663,9 +692,14 @@ textarea.glass-control {
   }
 
   .glass-header {
-    align-items: flex-end;
+    align-items: stretch;
+    flex-direction: column;
     padding: 16px;
     border-radius: 24px;
+  }
+
+  .language-field {
+    flex-basis: auto;
   }
 
   .field-grid {
