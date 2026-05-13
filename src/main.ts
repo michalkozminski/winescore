@@ -70,8 +70,11 @@ const germanTranslations: Record<string, string> = {
   "Selected aromas will appear here": "Ausgewählte Aromen erscheinen hier",
   "Notes": "Notizen",
   "Aroma categories": "Aromakategorien",
-  "Select BLIC criteria": "BLIC-Kriterien auswählen",
+  "Select BLIK criteria": "BLIK-Kriterien auswählen",
   "criteria selected": "Kriterien ausgewählt",
+  "BLIK quality": "BLIK-Qualität",
+  "BLIK assessment is calculated from balance, length, intensity, and complexity.": "Die BLIK-Beurteilung wird aus Balance, Länge, Intensität und Komplexität berechnet.",
+  "BLIK average": "BLIK-Durchschnitt",
   "selected": "ausgewählt",
   "Remove": "Entfernen",
 
@@ -134,7 +137,6 @@ const germanTranslations: Record<string, string> = {
   "Finish": "Abgang",
   "Short, medium, long": "Kurz, mittel, lang",
   "Conclusion": "Fazit",
-  "Score is calculated from balance, length, intensity, and complexity.": "Die Punktzahl wird aus Balance, Länge, Intensität und Komplexität berechnet.",
   "Balance": "Balance",
   "Length": "Länge",
   "Complexity": "Komplexität",
@@ -474,13 +476,13 @@ const sections: Section[] = [
   },
   {
     title: t("Conclusion"),
-    subtitle: t("Score is calculated from balance, length, intensity, and complexity."),
+    subtitle: t("BLIK assessment is calculated from balance, length, intensity, and complexity."),
     fields: [
       { id: "balanceScore", label: t("Balance"), type: "select", options: scoreOptions },
       { id: "lengthScore", label: t("Length"), type: "select", options: scoreOptions },
       { id: "intensityScore", label: t("Intensity"), type: "select", options: scoreOptions },
       { id: "complexityScore", label: t("Complexity"), type: "select", options: scoreOptions },
-      { id: "score", label: t("Score"), type: "score" },
+      { id: "score", label: t("BLIK quality"), type: "score" },
       { id: "quality", label: t("Quality"), placeholder: t("Acceptable, good, very good, outstanding") },
       { id: "readiness", label: t("Readiness"), placeholder: t("Drink now, suitable for ageing") },
       { id: "conclusionNotes", label: t("Notes"), type: "textarea", placeholder: t("Balance, length, intensity, complexity") }
@@ -572,7 +574,7 @@ function fieldTemplate(field: Field): string {
         <span>${field.label}</span>
         <div class="score-display" aria-live="polite">
           <strong id="scoreValue">--</strong>
-          <span id="scoreLabel">${t("Select BLIC criteria")}</span>
+          <span id="scoreLabel">${t("Select BLIK criteria")}</span>
         </div>
         <input id="${field.id}" name="${field.id}" type="hidden" />
       </div>
@@ -830,20 +832,20 @@ function updateTanninAvailability(): void {
   }
 }
 
-function scoreQualityLabel(score: number): string {
-  if (score >= 85) {
+function blikQualityLabel(average: number): string {
+  if (average >= 4.5) {
     return t("Outstanding");
   }
 
-  if (score >= 70) {
+  if (average >= 3.5) {
     return t("Very good");
   }
 
-  if (score >= 55) {
+  if (average >= 2.5) {
     return t("Good");
   }
 
-  if (score >= 40) {
+  if (average >= 1.5) {
     return t("Acceptable");
   }
 
@@ -865,10 +867,11 @@ function updateScore(): void {
   }
 
   const total = assessedValues.reduce((sum, value) => sum + value, 0);
-  const score = Math.round((total / (scoreCriteria.length * 5)) * 100);
-  scoreInput.value = String(score);
-  scoreValue.textContent = String(score);
-  scoreLabel.textContent = scoreQualityLabel(score);
+  const average = total / scoreCriteria.length;
+  const quality = blikQualityLabel(average);
+  scoreInput.value = quality;
+  scoreValue.textContent = quality;
+  scoreLabel.textContent = `${t("BLIK average")}: ${average.toFixed(1)}/5`;
 }
 
 function updateWineTypeDependentFields(keepColour = false): void {
