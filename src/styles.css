@@ -136,8 +136,7 @@ textarea {
 }
 
 .glass-header {
-  position: sticky;
-  top: max(12px, env(safe-area-inset-top));
+  position: relative;
   z-index: 3;
   display: flex;
   align-items: center;
